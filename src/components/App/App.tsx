@@ -28,7 +28,7 @@ export default function App() {
   return (
     <>
       <div className={css.app}>
-        {data?.totalPages > 1 && (
+        {data && data.totalPages > 1 && (
           <Pagination
             totalPages={data.totalPages}
             currentPage={page}
