@@ -5,9 +5,11 @@ import { fetchNotes, deleteNote } from "../../services/noteService";
 import { keepPreviousData } from "@tanstack/react-query";
 import Pagination from "../Pagination/Pagination";
 import { useState } from "react";
+import Modal from "../Modal/Modal";
 
 export default function App() {
   const [page, setPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const queryClient = useQueryClient();
   const { mutate: handleDelete } = useMutation({
     mutationFn: deleteNote, // викликає deleteNote(id)
@@ -36,14 +38,22 @@ export default function App() {
           />
         )}
         <header className={css.toolbar}>
-          {notes.length > 0 && (
-            <NoteList notes={notes} onDelete={handleDelete} />
+          <input className={css.input} type="text" placeholder="Search notes" />
+
+          <button className={css.button} onClick={() => setIsModalOpen(true)}>
+            Create note +
+          </button>
+          {isModalOpen && (
+            <Modal onClose={() => setIsModalOpen(false)}>
+              {/* сюди потім додаси NoteForm */}
+            </Modal>
           )}
 
           {/* Компонент SearchBox */}
           {/* Пагінація */}
           {/* Кнопка створення нотатки */}
         </header>
+        {notes.length > 0 && <NoteList notes={notes} onDelete={handleDelete} />}
       </div>
     </>
   );
