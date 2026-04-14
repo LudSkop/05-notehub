@@ -7,7 +7,7 @@ import type { NoteTag } from "../../types/note";
 
 interface NoteFormValues {
   title: string;
-  content: string;
+  content?: string;
   tag: NoteTag;
 }
 
@@ -25,8 +25,10 @@ const validationSchema = Yup.object({
     .min(3, "Too short")
     .max(50, "Too long")
     .required("Title is required"),
-  content: Yup.string().max(500, "Too long").required("Content is required"),
-  tag: Yup.string().required("Tag is required"),
+  content: Yup.string().max(500, "Too long"),
+  tag: Yup.string()
+    .oneOf(["Todo", "Work", "Personal", "Meeting", "Shopping"])
+    .required("Tag is required"),
 });
 
 export default function NoteForm({ onClose }: NoteFormProps) {
@@ -94,7 +96,6 @@ export default function NoteForm({ onClose }: NoteFormProps) {
             disabled={isPending}
           >
             {isPending ? "Creating..." : "Create note"}
-            Create note
           </button>
         </div>
         {isError && (
