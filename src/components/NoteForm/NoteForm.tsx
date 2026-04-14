@@ -16,6 +16,8 @@ const initialValues: NoteFormValues = {
 interface NoteFormProps {
   onClose: () => void;
   onSubmit: (values: NoteFormValues) => void;
+  isLoading: boolean;
+  error: Error | null;
 }
 
 const validationSchema = Yup.object({
@@ -27,7 +29,12 @@ const validationSchema = Yup.object({
   tag: Yup.string().required("Tag is required"),
 });
 
-export default function NoteForm({ onClose, onSubmit }: NoteFormProps) {
+export default function NoteForm({
+  onClose,
+  onSubmit,
+  isLoading,
+  error,
+}: NoteFormProps) {
   const handleSubmit = (
     values: NoteFormValues,
     octions: FormikHelpers<NoteFormValues>,
@@ -77,10 +84,18 @@ export default function NoteForm({ onClose, onSubmit }: NoteFormProps) {
           <button type="button" onClick={onClose} className={css.cancelButton}>
             Cancel
           </button>
-          <button type="submit" className={css.submitButton} disabled={false}>
+          <button
+            type="submit"
+            className={css.submitButton}
+            disabled={isLoading}
+          >
+            {isLoading ? "Creating..." : "Create note"}
             Create note
           </button>
         </div>
+        {error && (
+          <p className={css.error}>Something went wrong. Please try again.</p>
+        )}
       </Form>
     </Formik>
   );
