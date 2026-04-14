@@ -7,11 +7,19 @@ import Pagination from "../Pagination/Pagination";
 import { useState } from "react";
 import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm";
+import { useDebouncedCallback } from "use-debounce";
+import SearchBox from "../SearchBox/SearchBox";
 
 export default function App() {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const queryClient = useQueryClient();
+  const [inputValue, setInputValue] = useState("");
+  const [search, setSearch] = useState("");
+
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    setSearch(value);
+  }, 3000);
 
   const { mutate: handleDelete } = useMutation({
     mutationFn: deleteNote, // викликає deleteNote(id)
@@ -20,7 +28,11 @@ export default function App() {
     },
   });
   // Створення нотатки
-  const { mutate: handleCreateNote } = useMutation({
+  const {
+    mutate: handleCreateNote,
+    isPending,
+    error: mutationError,
+  } = useMutation({
     mutationFn: createNote,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
@@ -29,8 +41,8 @@ export default function App() {
   });
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["notes", page], // ключ з номером сторінки
-    queryFn: () => fetchNotes({ page }), // передаємо номер сторінки
+    queryKey: ["notes", page, search], // ключ з номером сторінки
+    queryFn: () => fetchNotes({ page, search }), // передаємо номер сторінки
     placeholderData: keepPreviousData,
   });
   if (isLoading) return <div>Loading...</div>;
@@ -48,8 +60,13 @@ export default function App() {
           />
         )}
         <header className={css.toolbar}>
-          <input className={css.input} type="text" placeholder="Search notes" />
-
+          <SearchBox
+            value={inputValue}
+            onChange={(value) => {
+              setInputValue(value);
+              debouncedSearch(value);
+            }}
+          />
           <button className={css.button} onClick={() => setIsModalOpen(true)}>
             Create note +
           </button>
@@ -58,13 +75,11 @@ export default function App() {
               <NoteForm
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleCreateNote}
+                isLoading={isPending}
+                error={mutationError}
               />
             </Modal>
           )}
-
-          {/* Компонент SearchBox */}
-          {/* Пагінація */}
-          {/* Кнопка створення нотатки */}
         </header>
         {notes.length > 0 && <NoteList notes={notes} onDelete={handleDelete} />}
       </div>
