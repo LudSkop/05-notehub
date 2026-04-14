@@ -1,7 +1,6 @@
 import css from "./App.module.css";
 import { NoteList } from "../NoteList/NoteList";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { fetchNotes, deleteNote, createNote } from "../../services/noteService";
+
 import { keepPreviousData } from "@tanstack/react-query";
 import Pagination from "../Pagination/Pagination";
 import { useState } from "react";
@@ -9,36 +8,20 @@ import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm";
 import { useDebouncedCallback } from "use-debounce";
 import SearchBox from "../SearchBox/SearchBox";
+import { useQuery } from "@tanstack/react-query";
+import { fetchNotes } from "../../services/noteService";
 
 export default function App() {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const queryClient = useQueryClient();
+
   const [inputValue, setInputValue] = useState("");
   const [search, setSearch] = useState("");
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
     setSearch(value);
-  }, 3000);
-
-  const { mutate: handleDelete } = useMutation({
-    mutationFn: deleteNote, // викликає deleteNote(id)
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] }); // оновлює список
-    },
-  });
-  // Створення нотатки
-  const {
-    mutate: handleCreateNote,
-    isPending,
-    error: mutationError,
-  } = useMutation({
-    mutationFn: createNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-      setIsModalOpen(false);
-    },
-  });
+    setPage(1); // ✅ скидає сторінку при новому пошуку
+  }, 500);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["notes", page, search], // ключ з номером сторінки
@@ -72,16 +55,12 @@ export default function App() {
           </button>
           {isModalOpen && (
             <Modal onClose={() => setIsModalOpen(false)}>
-              <NoteForm
-                onClose={() => setIsModalOpen(false)}
-                onSubmit={handleCreateNote}
-                isLoading={isPending}
-                error={mutationError}
-              />
+              <NoteForm onClose={() => setIsModalOpen(false)} />
             </Modal>
           )}
         </header>
-        {notes.length > 0 && <NoteList notes={notes} onDelete={handleDelete} />}
+
+        {notes.length > 0 && <NoteList notes={notes} />}
       </div>
     </>
   );
