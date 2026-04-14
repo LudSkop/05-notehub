@@ -17,7 +17,7 @@ interface NoteFormProps {
   onClose: () => void;
   onSubmit: (values: NoteFormValues) => void;
   isLoading: boolean;
-  error: unknown;
+  error: Error | null;
 }
 
 const validationSchema = Yup.object({
