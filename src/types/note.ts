@@ -11,6 +11,6 @@ export type NoteTag = "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";
 
 export interface CreateNotePayload {
   title: string;
-  content: string;
+  content?: string;
   tag: NoteTag;
 }
