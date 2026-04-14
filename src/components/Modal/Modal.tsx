@@ -13,7 +13,12 @@ export default function Modal({ onClose, children }: ModalProps) {
       if (e.key === "Escape") onClose();
     };
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden"; // ✅ блокує скролінг
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = ""; // ✅ тепер всередині return
+    };
   }, [onClose]);
 
   const handleBackdrop = (e: React.MouseEvent) => {

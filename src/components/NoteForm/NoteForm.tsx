@@ -1,11 +1,14 @@
 import css from "./NoteForm.module.css";
 import { Formik, Form, Field, type FormikHelpers, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createNote } from "../../services/noteService";
+import type { NoteTag } from "../../types/note";
 
 interface NoteFormValues {
   title: string;
   content: string;
-  tag: string;
+  tag: NoteTag;
 }
 
 const initialValues: NoteFormValues = {
@@ -15,9 +18,6 @@ const initialValues: NoteFormValues = {
 };
 interface NoteFormProps {
   onClose: () => void;
-  onSubmit: (values: NoteFormValues) => void;
-  isLoading: boolean;
-  error: Error | null;
 }
 
 const validationSchema = Yup.object({
@@ -29,18 +29,22 @@ const validationSchema = Yup.object({
   tag: Yup.string().required("Tag is required"),
 });
 
-export default function NoteForm({
-  onClose,
-  onSubmit,
-  isLoading,
-  error,
-}: NoteFormProps) {
+export default function NoteForm({ onClose }: NoteFormProps) {
+  const queryClient = useQueryClient();
+  const { mutate, isPending, isError } = useMutation({
+    mutationFn: createNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] }); // ✅ оновлює список
+      onClose(); // ✅ закриває модалку
+    },
+  });
+
   const handleSubmit = (
     values: NoteFormValues,
     octions: FormikHelpers<NoteFormValues>,
   ) => {
     console.log(values);
-    onSubmit(values); // ✅ викликає createNote з App
+    mutate(values); // ✅ викликає createNote
     octions.resetForm();
   };
   return (
@@ -87,13 +91,13 @@ export default function NoteForm({
           <button
             type="submit"
             className={css.submitButton}
-            disabled={isLoading}
+            disabled={isPending}
           >
-            {isLoading ? "Creating..." : "Create note"}
+            {isPending ? "Creating..." : "Create note"}
             Create note
           </button>
         </div>
-        {error && (
+        {isError && (
           <p className={css.error}>Something went wrong. Please try again.</p>
         )}
       </Form>
