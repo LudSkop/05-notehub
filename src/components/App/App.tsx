@@ -35,13 +35,6 @@ export default function App() {
   return (
     <>
       <div className={css.app}>
-        {data && data.totalPages > 1 && (
-          <Pagination
-            totalPages={data.totalPages}
-            currentPage={page}
-            onPageChange={setPage}
-          />
-        )}
         <header className={css.toolbar}>
           <SearchBox
             value={inputValue}
@@ -50,6 +43,13 @@ export default function App() {
               debouncedSearch(value);
             }}
           />
+          {data && data.totalPages > 1 && (
+            <Pagination
+              totalPages={data.totalPages}
+              currentPage={page}
+              onPageChange={setPage}
+            />
+          )}
           <button className={css.button} onClick={() => setIsModalOpen(true)}>
             Create note +
           </button>
